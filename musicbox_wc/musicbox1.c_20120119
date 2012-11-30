@@ -1,0 +1,94 @@
+// musicbox1.c
+// for NerdKits with ATtiny26L
+// mrobbins@mit.edu
+
+// F_CPU defined for delay.c
+#define F_CPU 9600000UL	// 8MHz
+
+#include <avr/io.h>
+#include <util/delay.h>
+
+#define nop() asm volatile("nop") 
+
+void delay_us(uint16_t delay) {
+int i = 0;
+for(i=0;i<delay;i++) { 
+nop(); 
+}
+}
+
+void play_tone(uint16_t delay, uint8_t duration) {
+  // delay is half-period in microseconds
+  // duration is in 10ms increments
+  
+  // example: 440Hz --> delay=1136
+  
+  // duration = 2*delay * cycles (all in same units)
+  // cycles = 10000 * duration / delay / 2
+  // cycles = 100 * duration / (delay/50)
+  //delay = delay*0.86;
+  uint16_t tmp = 100 * duration;
+  uint16_t delaysm = delay / 50;
+  uint16_t cycles = tmp / delaysm;
+
+while(cycles > 0) {
+PORTB = 0xFF;
+delay_us(delay);
+PORTB = 0x00;
+delay_us(delay);
+cycles--;
+}
+}
+
+// define some notes
+// Frequencies from http://www.phy.mtu.edu/~suits/notefreqs.html
+// converted to half-periods (us) by calculating
+// 	1000000/2/frequency
+// where frequency is in Hz
+#define DUR 55
+
+#define D5 1050
+#define E5 935
+#define Fsh5 833
+#define G5 786
+#define A5 701
+#define A4 1402
+#define B5 624
+#define C6 588
+#define D6 524
+
+
+int main() {
+  // internal RC oscillator calibration for 8MHz.
+  //OSCCAL = 176;
+
+  // enable the piezo as output
+  DDRB = 0xFF;
+
+	play_tone(D5, DUR);
+	play_tone(D5, DUR);
+	play_tone(E5, DUR);
+	play_tone(D5, DUR);
+	play_tone(G5, DUR);
+	play_tone(Fsh5, DUR*2);
+	play_tone(D5, DUR);
+	play_tone(E5, DUR);
+	play_tone(D5, DUR);
+	play_tone(A5, DUR);
+	play_tone(G5, DUR*2);
+	play_tone(D5, DUR);
+	play_tone(D6, DUR);
+	play_tone(B5, DUR);
+	play_tone(G5, DUR);
+	play_tone(Fsh5, DUR);
+	play_tone(E5, DUR);
+	play_tone(C6, DUR);
+	play_tone(B5, DUR);
+	play_tone(G5, DUR);
+	play_tone(A5, DUR);
+	play_tone(G5, DUR*2);
+
+
+  return 0;
+
+}

@@ -1,0 +1,96 @@
+// musicbox1.c
+// for NerdKits with ATtiny26L
+// mrobbins@mit.edu
+
+// F_CPU defined for delay.c
+#define F_CPU 9600000UL	// 8MHz
+
+#include <avr/io.h>
+#include <avr/sleep.h>
+#include <util/delay.h>
+
+#define nop() asm volatile("nop") 
+
+void delay_us(uint16_t delay) {
+	uint16_t i = 0;
+	for(i=0;i<delay;i++) { 
+		nop(); 
+	}
+}
+
+void play_tone(uint16_t delay, uint8_t duration) {
+  
+	uint16_t tmp = 100 * duration;
+	uint16_t delaysm = delay / 50;
+	uint16_t cycles = tmp / delaysm;
+
+	while(cycles > 0) {
+		PORTB = 0xFF;
+		delay_us(delay);
+		PORTB = 0x00;
+		delay_us(delay);
+		cycles--;
+	}
+
+	delay_us(0xFFFF);
+
+}
+
+// define some notes
+// Frequencies from http://www.phy.mtu.edu/~suits/notefreqs.html
+// converted to half-periods (us) by calculating
+// 	1000000/2/frequency
+// where frequency is in Hz
+// cat notes.txt | perl -ne 'chomp; ($a, $b, $c) = split(/ /); print "$a $b " . int(($c/.81)) . "\n";'
+
+#define DUR2 110
+#define DUR4 55
+#define DUR8D 40
+#define DUR16 13
+
+#define D5 1050
+#define E5 935
+#define Fsh5 833
+#define G5 786
+#define A5 701
+#define A4 1402
+#define B5 624
+#define C6 588
+#define D6 524
+
+
+int main() {
+
+	delay_us(0xFFFF);
+  	DDRB = 0xFF;
+
+	play_tone(D5, DUR8D); play_tone(D5, DUR16);
+	play_tone(E5, DUR4);
+	play_tone(D5, DUR4);
+	play_tone(G5, DUR4);
+	play_tone(Fsh5, DUR2);//x
+	play_tone(D5, DUR8D); play_tone(D5, DUR16);
+	play_tone(E5, DUR4);
+	play_tone(D5, DUR4);
+	play_tone(A5, DUR4);
+	play_tone(G5, DUR2);//x
+	play_tone(D5, DUR8D); play_tone(D5, DUR16);
+	play_tone(D6, DUR4);
+	play_tone(B5, DUR4);
+	play_tone(G5, DUR4);
+	play_tone(Fsh5, DUR4);
+	play_tone(E5, DUR2);
+	play_tone(C6, DUR8D); play_tone(C6, DUR16);
+	play_tone(B5, DUR4);
+	play_tone(G5, DUR4);
+	play_tone(A5, DUR4);
+	play_tone(G5, DUR2);
+
+	PORTB=0x00;//all pins GND
+	DDRB=0xFF;//all pin states Input
+        MCUCR = _BV(SM1) |  _BV(SE);//configure sleep mode 
+        sleep_cpu();    
+
+  	return 0;
+
+}

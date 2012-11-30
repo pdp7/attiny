@@ -1,0 +1,9 @@
+#define D5 851
+#define E5 758
+#define Fsh5 675
+#define G5 637
+#define A5 568
+#define A4 1136
+#define B5 506
+#define C6 477
+#define D6 425
